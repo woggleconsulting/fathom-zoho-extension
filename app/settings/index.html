@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="app.css">
+    <script src="https://live.zwidgets.com/js-sdk/1.1/ZohoEmbedDocumentSDK.min.js"></script>
+</head>
+<body>
+    <div id="widget-container">
+        <div id="step-1" class="wizard-step active">
+            <h2>Connect Fathom AI</h2>
+            <p class="helper-text">Find your API key in Fathom: <a href="https://fathom.video/customize" target="_blank">fathom.video/customize → API Access</a></p>
+            <input type="password" id="api-key-input" placeholder="Paste your Fathom API Key here">
+            <button id="btn-test-connection" onclick="testConnection()">Test Connection</button>
+            <div id="connect-error" class="error-text hidden"></div>
+            <div id="connected-state" class="hidden">
+                <span class="success-text">✓ Connected as <strong id="account-name"></strong></span>
+                <button class="next-btn" onclick="goToStep(2)">Next</button>
+                <a href="#" class="disconnect-link" onclick="disconnect()">Disconnect</a>
+            </div>
+        </div>
+
+        <div id="step-2" class="wizard-step hidden">
+            <h2>Which meetings should sync?</h2>
+            <div class="checkbox-group">
+                <label><input type="checkbox" id="sync-my" checked> My own recordings</label>
+                <label><input type="checkbox" id="sync-team" checked> Shared with my team</label>
+            </div>
+            <h3>What to capture from each meeting</h3>
+            <div class="checkbox-group">
+                <label><input type="checkbox" id="cap-transcript" checked> Full transcript</label>
+                <label><input type="checkbox" id="cap-summary" checked> AI summary</label>
+                <label><input type="checkbox" id="cap-actions" checked> Action items</label>
+            </div>
+            <div class="info-callout">New meetings will appear in your CRM automatically within seconds of the recording ending.</div>
+            <button onclick="goToStep(3)">Next</button>
+        </div>
+
+        <div id="step-3" class="wizard-step hidden">
+            <h2>CRM & Desk Routing</h2>
+            <label>Contact Matching</label>
+            <select id="contact-matching">
+                <option value="exact">Match attendees to contacts by email</option>
+                <option value="domain">Match by email domain (broader)</option>
+                <option value="none">Don’t auto-match contacts</option>
+            </select>
+            
+            <div class="toggle-container">
+                <label>Create Desk Tickets</label>
+                <input type="checkbox" id="desk-toggle" checked onchange="toggleDeskFields()">
+            </div>
+            <div id="desk-fields" class="side-by-side">
+                <select id="desk-dept"><option>Support</option></select>
+                <select id="desk-priority"><option>Medium</option></select>
+            </div>
+            <button id="btn-finish" onclick="finishSetup()">Finish Setup</button>
+        </div>
+
+        <div id="spinner-overlay" class="hidden">
+            <div class="spinner"></div>
+            <p id="spinner-text">Processing...</p>
+        </div>
+
+        <div id="dashboard" class="hidden">
+            <div class="badge-row">
+                <span class="live-badge"><span class="dot"></span> Syncing automatically</span>
+            </div>
+            <h3>Recent Meetings</h3>
+            <div id="meetings-feed"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
