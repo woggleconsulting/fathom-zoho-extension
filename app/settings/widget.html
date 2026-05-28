@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fathom AI Integration Settings</title>
+    <script src="https://live.zwidgets.com/js-sdk/1.1/ZohoEmbededAppSDK.min.js"></script>
+    
+    <style>
+        :root {
+            --color-primary: #1565C0;
+            --color-success: #2E7D32;
+            --color-warning: #EF6C00;
+            --color-danger: #C62828;
+            --color-bg-base: #F8F9FA;
+            --color-bg-surface: #FFFFFF;
+            --color-border: #E0E0E0;
+            --color-text-primary: #212121;
+            --color-text-secondary: #666666;
+            --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: var(--font-stack); background-color: var(--color-bg-base); color: var(--color-text-primary); padding: 24px; line-height: 1.5; }
+        
+        /* Layout Framework Containers */
+        .widget-container { max-width: 1000px; margin: 0 auto; background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); min-height: 500px; padding: 32px; }
+        .view-panel { display: none; }
+        .view-panel.active { display: block; }
+
+        /* Wizard Stepper Header Elements */
+        .stepper { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; border-bottom: 2px solid var(--color-border); padding-bottom: 20px; }
+        .step-node { display: flex; align-items: center; gap: 10px; color: var(--color-text-secondary); font-weight: 500; position: relative; }
+        .step-node.active { color: var(--color-primary); }
+        .step-node.completed { color: var(--color-success); }
+        .step-circle { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--color-border); display: flex; align-items: center; justify-content: center; font-size: 14px; background: var(--color-bg-surface); }
+        .step-node.active .step-circle { border-color: var(--color-primary); background: var(--color-primary); color: white; }
+        .step-node.completed .step-circle { border-color: var(--color-success); background: var(--color-success); color: white; }
+
+        /* Typography & Form Elements */
+        h2 { font-size: 22px; font-weight: 600; margin-bottom: 8px; color: #111; }
+        .subtitle { color: var(--color-text-secondary); font-size: 14px; margin-bottom: 28px; }
+        .form-group { margin-bottom: 24px; max-width: 500px; }
+        label { display: block; font-weight: 500; font-size: 14px; margin-bottom: 8px; }
+        input[type="password"], select { width: 100%; padding: 10px 14px; border: 1px solid var(--color-border); border-radius: 4px; font-size: 14px; transition: border 0.2s; }
+        input[type="password"]:focus, select:focus { outline: none; border-color: var(--color-primary); }
+        .helper-text { font-size: 12px; color: var(--color-text-secondary); margin-top: 6px; }
+        .helper-text a { color: var(--color-primary); text-decoration: none; }
+
+        /* Selection Grids (Step 2) */
+        .grid-title { font-weight: 600; font-size: 15px; margin: 20px 0 12px 0; }
+        .checkbox-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px; }
+        .checkbox-card { border: 1px solid var(--color-border); padding: 16px; border-radius: 6px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: all 0.2s; }
+        .checkbox-card:hover { border-color: var(--color-primary); background: #F5F9FF; }
+        .checkbox-card input { margin-top: 3px; }
+        .checkbox-label-block {font-weight: 500; font-size: 14px; }
+
+        /* Flex Layout Utilities */
+        .flex-row-layout { display: flex; gap: 16px; max-width: 500px; }
+        .flex-row-layout .form-group { flex: 1; }
+
+        /* Alert Display Callouts */
+        .info-callout { background-color: #E3F2FD; border-left: 4px solid var(--color-primary); padding: 16px; border-radius: 0 4px 4px 0; font-size: 13px; color: #0D47A1; margin: 24px 0; }
+        .error-banner { background-color: #FFEBEE; border: 1px solid #FFCDD2; color: var(--color-danger); padding: 12px; border-radius: 4px; font-size: 13px; margin-bottom: 20px; display: none; }
+
+        /* Toggle Switches */
+        .toggle-container { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #CCC; transition: .3s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--color-primary); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        /* Interactive Controls / Buttons */
+        .action-bar { display: flex; align-items: center; gap: 16px; margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--color-border); }
+        .btn { padding: 10px 20px; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; transition: background 0.2s; }
+        .btn-primary { background: var(--color-primary); color: white; }
+        .btn-primary:hover { background: #0D47A1; }
+        .btn-primary:disabled { background: #90CAF9; cursor: not-allowed; }
+        .btn-secondary { background: transparent; color: var(--color-text-secondary); border: 1px solid var(--color-border); }
+        .btn-secondary:hover { background: var(--color-bg-base); }
+        .btn-danger-link { background: transparent; color: var(--color-danger); font-size: 13px; text-decoration: none; cursor: pointer; }
+        .btn-danger-link:hover { text-decoration: underline; }
+
+        /* Background Processing Screen (Spinner) */
+        .processing-wrapper { text-align: center; padding: 60px 0; }
+        .spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 48px; height: 48px; border-radius: 50%; border-left-color: var(--color-primary); animation: spin 1s linear infinite; margin: 0 auto 24px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .success-checkmark { font-size: 56px; color: var(--color-success); margin-bottom: 16px; }
+
+        /* Dashboard UI Component Blocks */
+        .dashboard-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+        .stats-row { grid-column: span 2; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .stat-card { background: var(--color-bg-base); border: 1px solid var(--color-border); padding: 20px; border-radius: 6px; }
+        .stat-card .value { font-size: 28px; font-weight: 700; color: #111; margin-top: 4px; }
+        .stat-card .label { font-size: 12px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .panel-card { background: white; border: 1px solid var(--color-border); border-radius: 6px; padding: 20px; margin-bottom: 24px; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--color-border); }
+        .panel-title { font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        /* Auto-Sync Badge Tracker Status */
+        .status-badge { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-success); background: #E8F5E9; padding: 4px 10px; border-radius: 12px; font-weight: 500; }
+        .status-dot { width: 8px; height: 8px; background: var(--color-success); border-radius: 50%; }
+
+        /* Structured Feed Layouts */
+        .feed-list { display: flex; flex-direction: column; gap: 12px; }
+        .feed-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; border: 1px solid var(--color-border); border-radius: 6px; }
+        .feed-meta { display: flex; align-items: center; gap: 12px; }
+        .feed-avatar { width: 36px; height: 36px; background: #E1F5FE; color: var(--color-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+        .feed-title-line { font-weight: 500; font-size: 14px; }
+        .feed-sub-line { font-size: 12px; color: var(--color-text-secondary); }
+        .badge-container { display: flex; gap: 6px; }
+        .badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
+        .badge-crm { background: #E3F2FD; color: #0D47A1; }
+        .badge-desk { background: #E8F5E9; color: #2E7D32; }
+        .badge-warn { background: #FFF3E0; color: var(--color-warning); }
+
+        /* Modal Overlays Layout */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-box { background: white; padding: 24px; border-radius: 6px; max-width: 400px; width: 100%; border: 1px solid var(--color-border); }
+        .modal-buttons { display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="widget-container">
+    
+    <div id="wz-stepper-header" class="stepper">
+        <div class="step-node active" id="node-1"><div class="step-circle">1</div>Connect</div>
+        <div class="step-node" id="node-2"><div class="step-circle">2</div>Meetings</div>
+        <div class="step-node" id="node-3"><div class="step-circle">3</div>CRM & Desk</div>
+    </div>
+
+    <div id="error-alert-banner" class="error-banner"></div>
+
+    <div id="panel-step-1" class="view-panel active">
+        <h2>Connect Your Fathom Account</h2>
+        <p class="subtitle">Securely bridge your video conversation metrics into your corporate database infrastructure.</p>
+        
+        <div class="form-group">
+            <label for="input-api-key">Fathom API Key</label>
+            <input type="password" id="input-api-key" placeholder="paste_your_fathom_key_here">
+            <p class="helper-text">Don't have a key? Navigate to <a href="https://fathom.video/customize" target="_blank">fathom.video/customize ➔ API Access</a> to generate a key token.</p>
+        </div>
+
+        <div id="connect-state-msg" style="margin-bottom: 20px; font-size: 14px;"></div>
+
+        <div class="action-bar">
+            <button class="btn btn-primary" id="btn-test-connection" onclick="handleTestConnection()" disabled>Test Connection</button>
+            <button class="btn btn-secondary" id="btn-step1-next" onclick="moveStep(2)" disabled>Next</button>
+            <span class="btn-danger-link" id="link-disconnect" style="display:none;" onclick="triggerDisconnectModal()">Disconnect</span>
+        </div>
+    </div>
+
+    <div id="panel-step-2" class="view-panel">
+        <h2>Configure Meeting Synchronization Targets</h2>
+        <p class="subtitle">Specify mapping directives to listen to without interacting with engineering parameters directly.</p>
+        
+        <p class="grid-title">Sync meetings that are...</p>
+        <div class="checkbox-grid">
+            <label class="checkbox-card">
+                <input type="checkbox" id="chk-own" checked>
+                <div class="checkbox-label-block"><strong>My own recordings</strong><p class="helper-text">Meetings where you are designated host owner.</p></div>
+            </label>
+            <label class="checkbox-card">
+                <input type="checkbox" id="chk-team" checked>
+                <div class="checkbox-label-block"><strong>Shared with my team</strong><p class="helper-text">Internal organization shared visibility metrics.</p></div>
+            </label>
+            <label class="checkbox-card">
+                <input type="checkbox" id="chk-external">
+                <div class="checkbox-label-block"><strong>Shared by external users</strong><p class="helper-text">Conversations cataloged by non-company operators.</p></div>
+            </label>
+            <label class="checkbox-card">
+                <input type="checkbox" id="chk-all">
+                <div class="checkbox-label-block"><strong>All team recordings</strong><p class="helper-text">Global tracking access metrics across groups.</p></div>
+            </label>
+        </div>
+
+        <p class="grid-title">What to capture from each meeting</p>
+        <div class="checkbox-grid">
+            <label class="checkbox-card">
+                <input type="checkbox" id="chk-cap-trans" checked>
+                <div class="checkbox-label-block"><strong>Full transcript</strong><p class="helper-text">Complete parsed plain-text engine transcripts.</p></div>
+            </label>
+            <label class="checkbox-card">
+                <input type="checkbox" id="chk-cap-sum" checked>
+                <div class="checkbox-label-block"><strong>AI summary</strong><p class="helper-text">High-level executive overview tracking insights.</p></div>
+            </label>
+            <label class="checkbox-card">
+                <input type="checkbox" id="chk-cap-actions" checked>
+                <div class="checkbox-label-block"><strong>Action items</strong><p class="helper-text">Identified tasks extracted natively via algorithms.</p></div>
+            </label>
+            <label class="checkbox-card">
+                <input type="checkbox" id="chk-cap-matches">
+                <div class="checkbox-label-block"><strong>CRM contact matches</strong><p class="helper-text">Auto-link tracking profiles elements securely.</p></div>
+            </label>
+        </div>
+
+        <div class="info-callout">
+            New meetings will appear in your CRM automatically within seconds of the recording ending.
+        </div>
+
+        <div class="action-bar">
+            <button class="btn btn-secondary" onclick="moveStep(1)">Back</button>
+            <button class="btn btn-primary" onclick="moveStep(3)">Next</button>
+        </div>
+    </div>
+
+    <div id="panel-step-3" class="view-panel">
+        <h2>Define Application Data Layout Actions</h2>
+        <p class="subtitle">Complete record routing schemas constraints properties structures.</p>
+        
+        <div class="form-group">
+            <label for="sel-matching">Contact Matching Strategy</label>
+            <select id="sel-matching">
+                <option value="email">Match attendees to contacts by email (Exact)</option>
+                <option value="domain">Match by email domain (Broader lookup context)</option>
+                <option value="none">Don’t auto-match contacts</option>
+            </select>
+            <p class="helper-text">Controls parsing linking directives constraints schemas targeting contacts.</p>
+        </div>
+
+        <div class="form-group" style="max-width: 500px;">
+            <div class="toggle-container">
+                <div>
+                    <strong>Zoho Desk Integration Module</strong>
+                    <p class="helper-text">Auto-escalate key support issues directly into helpdesk rows.</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-desk" checked onchange="toggleDeskFields(this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="flex-row-layout" id="desk-conditional-fields">
+            <div class="form-group">
+                <label for="sel-desk-dept">Target Department</label>
+                <select id="sel-desk-dept">
+                    <option value="Support">Support</option>
+                    <option value="Sales">Sales Engine</option>
+                    <option value="Accounts">Finance Ops</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="sel-desk-priority">Default Ticket Priority</label>
+                <select id="sel-desk-priority">
+                    <option value="Low">Low</option>
+                    <option value="Normal" selected>Normal</option>
+                    <option value="High">High Critical</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="action-bar">
+            <button class="btn btn-secondary" onclick="moveStep(2)">Back</button>
+            <button class="btn btn-primary" onclick="executeBackgroundSetup()">Finish Setup</button>
+        </div>
+    </div>
+
+    <div id="panel-processing" class="view-panel">
+        <div class="processing-wrapper">
+            <div id="spinner-loader-graphic" class="spinner"></div>
+            <div id="success-icon-checkmark" class="success-checkmark" style="display:none;">✓</div>
+            <h2 id="processing-headline-text">Processing Configurations</h2>
+            <p id="processing-status-msg" class="subtitle">Initializing synchronization layer settings...</p>
+            <div class="action-bar" id="processing-action-block" style="display:none; justify-content:center; border:none; margin:0;">
+                <button class="btn btn-primary" onclick="loadDashboardLayoutView()">Go to Dashboard</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="panel-dashboard" class="view-panel">
+        <div class="dashboard-layout">
+            
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="label">Meetings Synced</div>
+                    <div class="value" id="dash-stat-meetings">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Desk Tickets Generated</div>
+                    <div class="value" id="dash-stat-tickets">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Contacts Automatically Matched</div>
+                    <div class="value" id="dash-stat-matched-pct">0%</div>
+                </div>
+            </div>
+
+            <div>
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <div class="panel-title">Recent Synced Meetings Activity</div>
+                        <button class="btn btn-secondary" style="padding:4px 12px; font-size:12px;" onclick="triggerManualSyncAction(this)">Sync Now</button>
+                    </div>
+                    <div class="feed-list" id="recent-meetings-feed-target"></div>
+                </div>
+            </div>
+
+            <div>
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <div class="panel-title">System Connectivity Status</div>
+                        <div class="status-badge"><div class="status-dot"></div>Syncing automatically</div>
+                    </div>
+                    <p style="font-size:13px; margin-bottom:6px;"><strong>Connected Profile:</strong> <span id="dash-profile-name">Loading...</span></p>
+                    <p style="font-size:13px; color:var(--color-text-secondary);"><strong>Last Checkpoint Sync:</strong> <span id="dash-last-sync-time">Never</span></p>
+                </div>
+
+                <div class="panel-card">
+                    <div class="panel-header"><div class="panel-title">Quick Adjustments Settings</div></div>
+                    
+                    <div class="toggle-container">
+                        <span style="font-size:13px; font-weight:500;">Create Desk tickets</span>
+                        <label class="switch">
+                            <input type="checkbox" id="dash-toggle-desk" checked onchange="saveQuickSettingsUpdates()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-container">
+                        <span style="font-size:13px; font-weight:500;">Auto-match contacts</span>
+                        <label class="switch">
+                            <input type="checkbox" id="dash-toggle-match" checked onchange="saveQuickSettingsUpdates()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-container">
+                        <span style="font-size:13px; font-weight:500;">Include internal meetings</span>
+                        <label class="switch">
+                            <input type="checkbox" id="dash-toggle-internal" onchange="saveQuickSettingsUpdates()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div style="margin-top:28px; padding-top:16px; border-top:1px solid var(--color-border); text-align:center;">
+                        <span class="btn-danger-link" onclick="triggerDisconnectModal()">Disconnect Fathom Account</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<div id="modal-container" class="modal-overlay">
+    <div class="modal-box">
+        <h3 style="font-size:16px; margin-bottom:10px;" id="modal-headline">Confirm Destructive Action</h3>
+        <p style="font-size:13px; color:var(--color-text-secondary);" id="modal-body-text">Are you sure you want to disconnect? This action removes tracking loops and deletes associated pipeline parameters endpoints hooks records.</p>
+        <div class="modal-buttons">
+            <button class="btn btn-secondary" style="padding:6px 14px; font-size:13px;" onclick="closeActiveModalWindow()">Cancel</button>
+            <button class="btn btn-primary" style="padding:6px 14px; font-size:13px; background:var(--color-danger);" id="modal-confirm-btn">Confirm Disconnect</button>
+        </div>
+    </div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
