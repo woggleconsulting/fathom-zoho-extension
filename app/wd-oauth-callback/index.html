@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Authorizing</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f8fafc;color:#1e293b}
+.c{text-align:center;padding:40px 24px;max-width:400px}
+.spinner{width:32px;height:32px;border:3px solid #e2e8f0;border-top-color:#1a56db;border-radius:50%;animation:s .6s linear infinite;margin:0 auto 16px}
+@keyframes s{to{transform:rotate(360deg)}}
+h2{font-size:16px;font-weight:600;margin-bottom:6px}
+p{font-size:13px;color:#64748b}
+.ok{color:#059669}
+.err{color:#dc2626}
+</style>
+</head>
+<body>
+<div class="c" id="content">
+  <div class="spinner"></div>
+  <h2>Completing authorization...</h2>
+  <p>This window will close automatically.</p>
+</div>
+<script>
+(function(){
+  var params = new URLSearchParams(window.location.search);
+  var code = params.get('code');
+  var error = params.get('error');
+  var state = params.get('state') || '';
+  var el = document.getElementById('content');
+
+  // Route by state prefix: dv_ = DecisionVault, zd_ = Zoho Desk, default = WorkDrive
+    var msgType = 'wd_oauth';
+    if (state.indexOf('dv_') === 0) {
+    msgType = 'dv_oauth';
+    } else if (state.indexOf('zd_') === 0) {
+    msgType = 'zd_oauth'; // Added router for your Desk Extension
+    }
+  if (error) {
+    el.innerHTML = '<h2 class="err">Authorization Failed</h2><p>' + error + '</p><p style="margin-top:12px">You can close this window and try again.</p>';
+    if (window.opener) {
+      window.opener.postMessage({ type: msgType, error: error }, '*');
+    }
+    return;
+  }
+
+  if (code) {
+    if (window.opener) {
+      window.opener.postMessage({ type: msgType, code: code }, '*');
+      el.innerHTML = '<svg width="40" height="40" viewBox="0 0 20 20" fill="#059669" style="margin-bottom:12px"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/></svg><h2 class="ok">Authorization Complete</h2><p>Closing this window...</p>';
+      setTimeout(function(){ window.close(); }, 1500);
+    } else {
+      el.innerHTML = '<h2 class="ok">Authorization Complete</h2><p>Please close this window and return to settings.</p>';
+    }
+    return;
+  }
+
+  el.innerHTML = '<h2 class="err">No Code Received</h2><p>Please close this window and try again.</p>';
+})();
+</script>
+</body>
+</html>
